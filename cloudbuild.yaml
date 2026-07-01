@@ -1,32 +1,33 @@
 steps:
-  # Step 1: Build the Docker image
+  # Step 1: Build the Docker image (Using $COMMIT_SHA for dynamic tagging)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-east1-docker.pkg.dev/qwiklabs-gcp-01-35487e0f15c0/${_REPOSITORY}/${_SERVICE_NAME}:latest', '.']
+    args: 
+      - 'build'
+      - '-t'
+      - 'us-east1-docker.pkg.dev/qwiklabs-gcp-01-35487e0f15c0/cloud-run-source-deploy/inventory-api:$COMMIT_SHA'
+      - '.'
 
   # Step 2: Push the image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-east1-docker.pkg.dev/qwiklabs-gcp-01-35487e0f15c0/${_REPOSITORY}/${_SERVICE_NAME}:latest']
+    args: 
+      - 'push'
+      - 'us-east1-docker.pkg.dev/qwiklabs-gcp-01-35487e0f15c0/cloud-run-source-deploy/inventory-api:$COMMIT_SHA'
 
   # Step 3: Deploy the image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
+    entrypoint: 'gcloud'
     args:
       - 'run'
       - 'deploy'
-      - '${_SERVICE_NAME}'
+      - 'inventory-api'
       - '--image'
-      - '${_REGION}-docker.pkg.dev/qwiklabs-gcp-01-35487e0f15c0/${_REPOSITORY}/${_SERVICE_NAME}:latest'
+      - 'us-east1-docker.pkg.dev/qwiklabs-gcp-01-35487e0f15c0/cloud-run-source-deploy/inventory-api:$COMMIT_SHA'
       - '--region'
-      - '${_REGION}'
+      - 'us-east1'
       - '--allow-unauthenticated'
 
 images:
-  - '${_REGION}-docker.pkg.dev/qwiklabs-gcp-01-35487e0f15c0/${_REPOSITORY}/${_SERVICE_NAME}:latest'
+  - 'us-east1-docker.pkg.dev/qwiklabs-gcp-01-35487e0f15c0/cloud-run-source-deploy/inventory-api:$COMMIT_SHA'
 
 options:
   logging: CLOUD_LOGGING_ONLY
-
-substitutions:
-  _REGION: us-east1
-  _SERVICE_NAME: inventory-api
-  _REPOSITORY: cloud-run-source-deploy
